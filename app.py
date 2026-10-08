@@ -68,6 +68,42 @@ hr{border-color:#503038!important}
 [data-testid="stTabs"] button{font-family:monospace!important;letter-spacing:.07em}
 [data-testid="stSidebar"]{background:linear-gradient(180deg,#120e14,#090a0d)!important}
 [data-testid="stSidebar"] [data-testid="stButton"] button{min-height:46px!important}
+
+/* Readable typography and controls on the dark game UI */
+.stApp, [data-testid="stSidebar"],
+[data-testid="stSidebar"] p, [data-testid="stSidebar"] label,
+[data-testid="stSidebar"] span, [data-testid="stSidebar"] small,
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"],
+[data-testid="stWidgetLabel"], [data-testid="stCaptionContainer"],
+[data-testid="stMetricLabel"], [data-testid="stMetricValue"],
+[data-testid="stAlert"] p, [data-testid="stAlert"] span {
+    color: #f1e9e6 !important;
+}
+[data-testid="stSidebar"] [data-baseweb="input"],
+[data-testid="stSidebar"] [data-baseweb="select"] > div,
+[data-testid="stSidebar"] [data-baseweb="base-input"],
+[data-testid="stSidebar"] input,
+[data-testid="stSidebar"] textarea,
+[data-testid="stSidebar"] [role="combobox"] {
+    background-color: #211b23 !important;
+    color: #fff6f2 !important;
+    -webkit-text-fill-color: #fff6f2 !important;
+    border-color: #77515b !important;
+}
+[data-testid="stSidebar"] input::placeholder {color:#d0bec3 !important;}
+[data-testid="stSidebar"] [data-baseweb="select"] svg,
+[data-testid="stSidebar"] [data-baseweb="input"] svg {fill:#f1e9e6 !important;color:#f1e9e6 !important;}
+[data-testid="stSidebar"] button {color:#fff4f0 !important;}
+[data-testid="stSidebar"] [data-baseweb="select"] [role="option"] {color:#f1e9e6 !important;}
+[data-baseweb="popover"] [role="listbox"],
+[data-baseweb="popover"] [role="option"] {background:#211b23 !important;color:#f1e9e6 !important;}
+/* Text entry throughout the main investigation view */
+[data-testid="stMain"] input, [data-testid="stMain"] textarea {
+    background-color:#211b23 !important;
+    color:#fff6f2 !important;
+    -webkit-text-fill-color:#fff6f2 !important;
+}
+[data-testid="stMain"] input::placeholder, [data-testid="stMain"] textarea::placeholder {color:#d0bec3 !important;}
 </style>""",unsafe_allow_html=True)
 
 def config_value(key, default=""):
@@ -1057,18 +1093,14 @@ with st.sidebar:
 
     if st.session_state.team_no is None:
         team_input = st.selectbox("담당 조 선택", list(range(1, 9)), format_func=lambda x: f"{x}조")
-        team_pw = st.text_input("조별 관리자 비밀번호", type="password", key="team_login_pw")
-        if st.button("담당 조 입장", use_container_width=True):
-            if team_pw == ADMIN_PASSWORD:
-                try:
-                    restore_progress(team_input)
-                    st.session_state.team_no = team_input
-                    st.session_state.admin_ok = True
-                    st.rerun()
-                except Exception as exc:
-                    st.error(f"조별 데이터 연결 실패: {exc}")
-            else:
-                st.error("관리자 비밀번호가 틀렸습니다.")
+        if st.button("게임 시작", use_container_width=True):
+            try:
+                restore_progress(team_input)
+                st.session_state.team_no = team_input
+                st.session_state.admin_ok = False
+                st.rerun()
+            except Exception as exc:
+                st.error(f"조별 데이터 연결 실패: {exc}")
     else:
         st.write(f"현재 담당 조: **{st.session_state.team_no}조**")
         if st.button("담당 조에서 나가기"):
@@ -1127,13 +1159,6 @@ with st.sidebar:
                 st.rerun()
             if st.button("-10P", use_container_width=True):
                 st.session_state.points = max(0, st.session_state.points - 10)
-                save_progress()
-                st.rerun()
-
-        with st.form("custom_points_form"):
-            amount = st.number_input("직접 지급할 포인트", min_value=1, max_value=10000, value=50, step=10)
-            if st.form_submit_button("입력한 포인트 지급", use_container_width=True):
-                st.session_state.points += int(amount)
                 save_progress()
                 st.rerun()
 
@@ -1214,7 +1239,7 @@ with st.sidebar:
 # ─────────────────────────────────────
 if st.session_state.team_no is None:
     st.title("🔍 학생회장 살인사건")
-    st.info("왼쪽 사이드바에서 담당 조를 선택하고 관리자 비밀번호로 입장해주세요.")
+    st.info("왼쪽 사이드바에서 담당 조를 선택한 뒤 게임 시작을 눌러주세요. 관리자 로그인 없이도 조사할 수 있습니다.")
     st.stop()
 
 
