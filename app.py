@@ -1463,7 +1463,7 @@ def render_clue_reveal_screen(clue_id: str):
         st.session_state.pending_clue_id = None
         st.session_state.selected_hotspot_id = None
         refresh_image_click_component()
-        st.rerun()
+        st.rerun(scope="fragment")
 
 
 # ─────────────────────────────────────
@@ -1489,7 +1489,7 @@ def render_confirm_box(clue_id: str):
                 st.session_state.selected_hotspot_id = None
                 refresh_image_click_component()
                 st.session_state.last_revealed_clue_id = clue_id
-                st.rerun()
+                st.rerun(scope="fragment")
         else:
             st.write(f"조사 비용: **{clue['cost']}P**")
             st.write(f"현재 조사 포인트: **{st.session_state.points}P**")
@@ -1528,7 +1528,7 @@ def render_confirm_box(clue_id: str):
                 ):
                     st.session_state.pending_clue_id = None
                     refresh_image_click_component()
-                    st.rerun()
+                    st.rerun(scope="fragment")
 
 
 # ─────────────────────────────────────
@@ -1573,7 +1573,7 @@ def render_hotspot_menu(hotspot_id: str):
                 else:
                     st.session_state.pending_clue_id = clue_id
 
-                st.rerun()
+                st.rerun(scope="fragment")
 
         if st.button(
             "선택 닫기",
@@ -1583,7 +1583,7 @@ def render_hotspot_menu(hotspot_id: str):
             st.session_state.selected_hotspot_id = None
             st.session_state.pending_clue_id = None
             refresh_image_click_component()
-            st.rerun()
+            st.rerun(scope="fragment")
 
 # ─────────────────────────────────────
 # 용의자 방(이지안 방 등) 공용 다중 단서 메뉴
@@ -1626,7 +1626,7 @@ def render_room_hotspot_menu(hotspots: dict, hotspot_id: str, room_label: str):
                 else:
                     st.session_state.pending_clue_id = clue_id
 
-                st.rerun()
+                st.rerun(scope="fragment")
 
         if st.button(
             "선택 닫기",
@@ -1636,7 +1636,7 @@ def render_room_hotspot_menu(hotspots: dict, hotspot_id: str, room_label: str):
             st.session_state.selected_hotspot_id = None
             st.session_state.pending_clue_id = None
             refresh_image_click_component()
-            st.rerun()
+            st.rerun(scope="fragment")
 
 # ─────────────────────────────────────
 # 디버그용 단서 버튼
@@ -1665,7 +1665,7 @@ def render_debug_button_list():
                     st.session_state.last_revealed_clue_id = clue_id
                 else:
                     st.session_state.pending_clue_id = clue_id
-                st.rerun()
+                st.rerun(scope="fragment")
 
     if st.session_state.pending_clue_id is not None:
         render_confirm_box(st.session_state.pending_clue_id)
@@ -1688,7 +1688,7 @@ def render_no_image_clue_menu(location_name):
                 st.session_state.last_revealed_clue_id = cid
             else:
                 st.session_state.pending_clue_id = cid
-            st.rerun()
+            st.rerun(scope="fragment")
     if st.session_state.pending_clue_id:
         render_confirm_box(st.session_state.pending_clue_id)
 
@@ -1696,6 +1696,7 @@ def render_no_image_clue_menu(location_name):
 # ─────────────────────────────────────
 # 사건 현장 화면
 # ─────────────────────────────────────
+@st.fragment
 def render_crime_scene():
     if st.session_state.last_revealed_clue_id is not None:
         render_clue_reveal_screen(st.session_state.last_revealed_clue_id)
@@ -1771,7 +1772,7 @@ def render_crime_scene():
                 # Image clicks already cause a Streamlit script rerun.
                 # Show a new clue menu/confirmation in this pass without forcing a second rerun.
                 if st.session_state.last_revealed_clue_id is not None:
-                    st.rerun()
+                    st.rerun(scope="fragment")
 
     if st.session_state.debug_mode and st.session_state.last_click_ratio:
         rx, ry = st.session_state.last_click_ratio
@@ -1792,6 +1793,7 @@ def render_crime_scene():
 # ─────────────────────────────────────
 # 이지안의 방
 # ─────────────────────────────────────
+@st.fragment
 def render_jian_room():
     if st.session_state.last_revealed_clue_id is not None:
         render_clue_reveal_screen(st.session_state.last_revealed_clue_id)
@@ -1865,7 +1867,7 @@ def render_jian_room():
                 # Image clicks already cause a Streamlit script rerun.
                 # Show a new clue menu/confirmation in this pass without forcing a second rerun.
                 if st.session_state.last_revealed_clue_id is not None:
-                    st.rerun()
+                    st.rerun(scope="fragment")
 
     if st.session_state.debug_mode and st.session_state.last_click_ratio:
         rx, ry = st.session_state.last_click_ratio
@@ -1903,12 +1905,13 @@ def render_jian_room():
                     else:
                         st.session_state.pending_clue_id = clue_id
 
-                    st.rerun()
+                    st.rerun(scope="fragment")
 
 
 # ─────────────────────────────────────
 # 전혜준의 방
 # ─────────────────────────────────────
+@st.fragment
 def render_hyejun_room():
     if st.session_state.last_revealed_clue_id is not None:
         render_clue_reveal_screen(st.session_state.last_revealed_clue_id)
@@ -1964,7 +1967,7 @@ def render_hyejun_room():
                 # Image clicks already cause a Streamlit script rerun.
                 # Show a new clue menu/confirmation in this pass without forcing a second rerun.
                 if st.session_state.last_revealed_clue_id is not None:
-                    st.rerun()
+                    st.rerun(scope="fragment")
 
     if st.session_state.debug_mode and st.session_state.last_click_ratio:
         rx, ry = st.session_state.last_click_ratio
@@ -1995,12 +1998,13 @@ def render_hyejun_room():
                             st.session_state.pending_clue_id = clue_id
                     else:
                         st.session_state.selected_hotspot_id = hotspot_id
-                    st.rerun()
+                    st.rerun(scope="fragment")
 
 
 # ─────────────────────────────────────
 # 변상균 교수 연구실
 # ─────────────────────────────────────
+@st.fragment
 def render_prof_room():
     if st.session_state.last_revealed_clue_id is not None:
         render_clue_reveal_screen(st.session_state.last_revealed_clue_id)
@@ -2070,7 +2074,7 @@ def render_prof_room():
                 # Image clicks already cause a Streamlit script rerun.
                 # Show a new clue menu/confirmation in this pass without forcing a second rerun.
                 if st.session_state.last_revealed_clue_id is not None:
-                    st.rerun()
+                    st.rerun(scope="fragment")
 
     if st.session_state.debug_mode and st.session_state.last_click_ratio:
         rx, ry = st.session_state.last_click_ratio
@@ -2115,13 +2119,14 @@ def render_prof_room():
                     else:
                         st.session_state.selected_hotspot_id = hotspot_id
 
-                    st.rerun()
+                    st.rerun(scope="fragment")
 
 
 
 # ─────────────────────────────────────
 # 박진서의 방
 # ─────────────────────────────────────
+@st.fragment
 def render_jinseo_room():
     if st.session_state.last_revealed_clue_id is not None:
         render_clue_reveal_screen(st.session_state.last_revealed_clue_id)
@@ -2191,7 +2196,7 @@ def render_jinseo_room():
                 # Image clicks already cause a Streamlit script rerun.
                 # Show a new clue menu/confirmation in this pass without forcing a second rerun.
                 if st.session_state.last_revealed_clue_id is not None:
-                    st.rerun()
+                    st.rerun(scope="fragment")
 
     if st.session_state.debug_mode and st.session_state.last_click_ratio:
         rx, ry = st.session_state.last_click_ratio
@@ -2236,13 +2241,14 @@ def render_jinseo_room():
                     else:
                         st.session_state.selected_hotspot_id = hotspot_id
 
-                    st.rerun()
+                    st.rerun(scope="fragment")
 
 
 
 # ─────────────────────────────────────
 # 고건태의 방
 # ─────────────────────────────────────
+@st.fragment
 def render_geontae_room():
     if st.session_state.last_revealed_clue_id is not None:
         render_clue_reveal_screen(st.session_state.last_revealed_clue_id)
@@ -2319,7 +2325,7 @@ def render_geontae_room():
                 # Image clicks already cause a Streamlit script rerun.
                 # Show a new clue menu/confirmation in this pass without forcing a second rerun.
                 if st.session_state.last_revealed_clue_id is not None:
-                    st.rerun()
+                    st.rerun(scope="fragment")
 
     if st.session_state.debug_mode and st.session_state.last_click_ratio:
         rx, ry = st.session_state.last_click_ratio
@@ -2367,7 +2373,7 @@ def render_geontae_room():
                     else:
                         st.session_state.selected_hotspot_id = hotspot_id
 
-                    st.rerun()
+                    st.rerun(scope="fragment")
 
 
 # ─────────────────────────────────────
