@@ -1093,6 +1093,9 @@ def draw_jian_debug_overlay(base_image: Image.Image) -> Image.Image:
 
 
 def find_hyejun_hotspot(x_ratio: float, y_ratio: float):
+    # 노트북은 조사 대상에서 제외: 클릭해도 단서 및 구매창을 열지 않음.
+    if 0.75 <= x_ratio <= 0.94 and 0.39 <= y_ratio <= 0.59:
+        return None
     matches = []
     for hotspot_id, hotspot in HYEJUN_ROOM_HOTSPOTS.items():
         x0, y0 = hotspot["x"], hotspot["y"]
@@ -1289,10 +1292,10 @@ with st.sidebar:
                 st.session_state.points += 10
                 save_progress()
                 st.rerun()
-            if st.button("+5P", use_container_width=True):
-               st.session_state.points += 5
-               save_progress()
-               st.rerun()
+            if st.button("+30P", use_container_width=True):
+                st.session_state.points += 30
+                save_progress()
+                st.rerun()
 
         with p2:
             if st.button("+20P", use_container_width=True):
