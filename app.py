@@ -1028,6 +1028,31 @@ def load_room_image(path):
     return _cached_room_image(path, os.stat(path).st_mtime_ns)
 
 
+
+# 클릭형 위젯에 큰 PIL 이미지를 매번 직렬화하지 않고 가벼운 JPEG 파일 경로를 전달합니다.
+# 이미지의 가로세로 비율은 유지하므로 기존 상대좌표 핫스팟은 변경하지 않습니다.
+@st.cache_resource(show_spinner=False, max_entries=12)
+def _fast_room_preview(path, modified_ns):
+    import hashlib
+    import tempfile
+    digest = hashlib.sha256(f"{path}:{modified_ns}".encode()).hexdigest()[:20]
+    cache_dir = Path(tempfile.gettempdir()) / "mt_mystery_room_previews"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    preview_file = cache_dir / f"{digest}.jpg"
+    if not preview_file.is_file():
+        with Image.open(path) as src:
+            preview = src.convert("RGB")
+            preview.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
+            preview.save(preview_file, format="JPEG", quality=78, optimize=True)
+    return str(preview_file)
+
+
+def fast_room_image(path, debug_mode, overlay_func):
+    if debug_mode:
+        return overlay_func(load_room_image(path))
+    # 경로를 넘기면 image-coordinates가 파일을 바로 사용합니다.
+    return _fast_room_preview(path, os.stat(path).st_mtime_ns)
+
 def show_optional_image(path):
     if path and os.path.exists(path):
         st.image(path, use_container_width=True)
@@ -1695,16 +1720,11 @@ def render_crime_scene():
     st.divider()
 
     try:
-        base_image = load_room_image(CRIME_SCENE_IMAGE_PATH)
+        display_image = fast_room_image(CRIME_SCENE_IMAGE_PATH, st.session_state.debug_mode, draw_debug_overlay)
     except FileNotFoundError:
         render_no_image_clue_menu('사건 현장 - 과방')
         return
 
-    display_image = (
-        draw_debug_overlay(base_image)
-        if st.session_state.debug_mode
-        else base_image
-    )
 
     value = streamlit_image_coordinates(
         display_image,
@@ -1748,7 +1768,10 @@ def render_crime_scene():
                 else:
                     st.session_state.selected_hotspot_id = hotspot_id
 
-                st.rerun()
+                # Image clicks already cause a Streamlit script rerun.
+                # Show a new clue menu/confirmation in this pass without forcing a second rerun.
+                if st.session_state.last_revealed_clue_id is not None:
+                    st.rerun()
 
     if st.session_state.debug_mode and st.session_state.last_click_ratio:
         rx, ry = st.session_state.last_click_ratio
@@ -1791,16 +1814,11 @@ def render_jian_room():
     st.info("방 안에서 조사하고 싶은 물건을 직접 눌러보세요.")
 
     try:
-        base_image = load_room_image(JIAN_ROOM_IMAGE_PATH)
+        display_image = fast_room_image(JIAN_ROOM_IMAGE_PATH, st.session_state.debug_mode, draw_jian_debug_overlay)
     except FileNotFoundError:
         render_no_image_clue_menu('이지안의 방')
         return
 
-    display_image = (
-        draw_jian_debug_overlay(base_image)
-        if st.session_state.debug_mode
-        else base_image
-    )
 
     value = streamlit_image_coordinates(
         display_image,
@@ -1844,7 +1862,10 @@ def render_jian_room():
                 else:
                     st.session_state.selected_hotspot_id = hotspot_id
 
-                st.rerun()
+                # Image clicks already cause a Streamlit script rerun.
+                # Show a new clue menu/confirmation in this pass without forcing a second rerun.
+                if st.session_state.last_revealed_clue_id is not None:
+                    st.rerun()
 
     if st.session_state.debug_mode and st.session_state.last_click_ratio:
         rx, ry = st.session_state.last_click_ratio
@@ -1907,12 +1928,11 @@ def render_hyejun_room():
     st.info("방 안에서 조사하고 싶은 물건을 직접 눌러보세요.")
 
     try:
-        base_image = load_room_image(HYEJUN_ROOM_IMAGE_PATH)
+        display_image = fast_room_image(HYEJUN_ROOM_IMAGE_PATH, st.session_state.debug_mode, draw_hyejun_debug_overlay)
     except FileNotFoundError:
         render_no_image_clue_menu('전혜준의 방')
         return
 
-    display_image = draw_hyejun_debug_overlay(base_image) if st.session_state.debug_mode else base_image
     value = streamlit_image_coordinates(
         display_image,
         key=f"hyejun_room_image_{st.session_state.image_click_nonce}",
@@ -1941,7 +1961,10 @@ def render_hyejun_room():
                         st.session_state.pending_clue_id = clue_id
                 else:
                     st.session_state.selected_hotspot_id = hotspot_id
-                st.rerun()
+                # Image clicks already cause a Streamlit script rerun.
+                # Show a new clue menu/confirmation in this pass without forcing a second rerun.
+                if st.session_state.last_revealed_clue_id is not None:
+                    st.rerun()
 
     if st.session_state.debug_mode and st.session_state.last_click_ratio:
         rx, ry = st.session_state.last_click_ratio
@@ -1999,16 +2022,11 @@ def render_prof_room():
     st.info("연구실 안에서 조사하고 싶은 물건을 직접 눌러보세요.")
 
     try:
-        base_image = load_room_image(PROF_ROOM_IMAGE_PATH)
+        display_image = fast_room_image(PROF_ROOM_IMAGE_PATH, st.session_state.debug_mode, draw_prof_debug_overlay)
     except FileNotFoundError:
         render_no_image_clue_menu('변상균 교수 연구실')
         return
 
-    display_image = (
-        draw_prof_debug_overlay(base_image)
-        if st.session_state.debug_mode
-        else base_image
-    )
 
     value = streamlit_image_coordinates(
         display_image,
@@ -2049,7 +2067,10 @@ def render_prof_room():
                 else:
                     st.session_state.selected_hotspot_id = hotspot_id
 
-                st.rerun()
+                # Image clicks already cause a Streamlit script rerun.
+                # Show a new clue menu/confirmation in this pass without forcing a second rerun.
+                if st.session_state.last_revealed_clue_id is not None:
+                    st.rerun()
 
     if st.session_state.debug_mode and st.session_state.last_click_ratio:
         rx, ry = st.session_state.last_click_ratio
@@ -2122,16 +2143,11 @@ def render_jinseo_room():
     st.info("방 안에서 조사하고 싶은 물건을 직접 눌러보세요.")
 
     try:
-        base_image = load_room_image(JINSEO_ROOM_IMAGE_PATH)
+        display_image = fast_room_image(JINSEO_ROOM_IMAGE_PATH, st.session_state.debug_mode, draw_jinseo_debug_overlay)
     except FileNotFoundError:
         render_no_image_clue_menu('박진서의 방')
         return
 
-    display_image = (
-        draw_jinseo_debug_overlay(base_image)
-        if st.session_state.debug_mode
-        else base_image
-    )
 
     value = streamlit_image_coordinates(
         display_image,
@@ -2172,7 +2188,10 @@ def render_jinseo_room():
                 else:
                     st.session_state.selected_hotspot_id = hotspot_id
 
-                st.rerun()
+                # Image clicks already cause a Streamlit script rerun.
+                # Show a new clue menu/confirmation in this pass without forcing a second rerun.
+                if st.session_state.last_revealed_clue_id is not None:
+                    st.rerun()
 
     if st.session_state.debug_mode and st.session_state.last_click_ratio:
         rx, ry = st.session_state.last_click_ratio
@@ -2248,16 +2267,11 @@ def render_geontae_room():
         st.success("3차 자유 조사: 이전 조사에서 확인하지 못한 장소와 자료를 자유롭게 다시 조사할 수 있습니다.")
 
     try:
-        base_image = load_room_image(GEONTAE_ROOM_IMAGE_PATH)
+        display_image = fast_room_image(GEONTAE_ROOM_IMAGE_PATH, st.session_state.debug_mode, draw_geontae_debug_overlay)
     except FileNotFoundError:
         render_no_image_clue_menu('고건태의 방')
         return
 
-    display_image = (
-        draw_geontae_debug_overlay(base_image)
-        if st.session_state.debug_mode
-        else base_image
-    )
 
     value = streamlit_image_coordinates(
         display_image,
@@ -2302,7 +2316,10 @@ def render_geontae_room():
                 else:
                     st.session_state.selected_hotspot_id = hotspot_id
 
-                st.rerun()
+                # Image clicks already cause a Streamlit script rerun.
+                # Show a new clue menu/confirmation in this pass without forcing a second rerun.
+                if st.session_state.last_revealed_clue_id is not None:
+                    st.rerun()
 
     if st.session_state.debug_mode and st.session_state.last_click_ratio:
         rx, ry = st.session_state.last_click_ratio
