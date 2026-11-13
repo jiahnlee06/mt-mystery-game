@@ -1290,9 +1290,9 @@ with st.sidebar:
                 save_progress()
                 st.rerun()
             if st.button("+5P", use_container_width=True):
-               st.session_state.points += 5
-               save_progress()
-             st.rerun()
+    st.session_state.points += 5
+    save_progress()
+    st.rerun()
 
         with p2:
             if st.button("+20P", use_container_width=True):
