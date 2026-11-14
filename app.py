@@ -1634,7 +1634,6 @@ def render_sidebar_controls():
 
         if st.button("관리자 로그아웃", use_container_width=True):
             st.session_state.admin_ok = False
-            st.session_state.debug_mode = False
             st.session_state.reset_confirm = False
             st.rerun(scope="fragment")
 
